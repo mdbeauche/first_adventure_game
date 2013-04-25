@@ -22,7 +22,7 @@ import pb_sprite
 
 def main():
 	# start game setup
-	pygame.init() # prepare the pygame module for use
+    pygame.init() # prepare the pygame module for use
 	
 	# initialize clock
     main_clock = pygame.time.Clock()	
@@ -36,6 +36,11 @@ def main():
 	# initialize sprites
 	main_sprites = []
 	# main_sprites.append(sprite)
+	# make 2 player characters for now, let them move around in 2d space
+	polar_bear_sprite = player_character_sprite(POLAR_BEAR_SPRITE_SHEET, posn, surface)
+	main_sprites.append(polar_bear_sprite)
+	#kitten_sprite = player_character_sprite(KITTEN_SPRITE_SHEET, posn, surface)
+	#main_sprites.append(kitten_sprite)
 	
 	# initialize game constants
 	
@@ -56,17 +61,30 @@ def main():
 			if event.type == pygame.QUIT:
 				main_done = True
 			elif event.type == pygame.KEYDOWN:
+				if event.key == K_UP:
+					player.moveup()
+				elif event.key == K_DOWN:
+					player.movedown()
+				elif event.key == K_LEFT:
+					player.movedown()
+				elif event.key == K_RIGHT:
+					player.movedown()					
 			elif event.type == pygame.KEYUP:
+
 		# end event processing
 	
 		# update game elements (move objects)
 		# start game logic
 		for sprite in main_sprites:
-			sprite.update()
+			# update based on game time passed in tick form (main_phase)
+			sprite.update(main_phase)
 		# end game logic
 	
-		# draw surface (draw objects)
+		# draw surface
 		# start render
+		# draw background
+		main_surface.fill(0,0,0) # black stage background
+		# draw objects (find a way to draw only what's changed)
 		for sprite in main_sprites:
 			sprite.draw()
 		# end render	
@@ -77,7 +95,9 @@ def main():
 		# Increase game tick
         main_phase += 1
 		
-		main_clock.tick(FPS_MAX)
+		main_clock.tick(GAME_SPEED)
+		# milliseconds = main_clock.tick(GAME_SPEED) # stores milliseconds since last frame
+		# playtime += milliseconds / 1000.0 # adds seconds to playtime
 	# end game loop
 	
 	# close game
