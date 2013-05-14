@@ -103,6 +103,7 @@ class Player_entity(Entity):
             self.idle_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             self.current_animation = self.idle_animation
         del player_sprite_sheet
+        del rects
             
     def update(self):
         # move the player to a new position
@@ -160,6 +161,13 @@ class Player_entity(Entity):
     def get_rectangle(self):
         return ( self.position[0], self.position[1], 
                  self.current_animation.rectangle.width, self.current_animation.rectangle.height )
+    def get_hitbox(self):
+        rect = self.get_rectangle()
+        rect = ( rect[0] - PLAYER_HITBOX_BUFFER, 
+                 rect[1] - PLAYER_HITBOX_BUFFER, 
+                 rect[2] - PLAYER_HITBOX_BUFFER, 
+                 rect[3] - PLAYER_HITBOX_BUFFER )
+        return rect
 
 class Enemy_entity(Entity):
     def __init__(self, position, sprite, smart = False):
@@ -174,6 +182,7 @@ class Enemy_entity(Entity):
         self.image = pygame.transform.flip( self.image, True, False )
         self.rectangle = self.image.get_rect()
         self.smart = smart
+        self.is_boss = False
         self.is_alive = True
         self.death_time = 0
         self.load_data( sprite )
@@ -181,11 +190,11 @@ class Enemy_entity(Entity):
         images = []
         image = pygame.image.load( os.path.join( os.pardir, DATA, sprite ) ).convert_alpha() 
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.8 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.8 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.8 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
         images.append( image )
         self.death_animation = Animated_sprite_sheet( images, 15, False )
         del images
@@ -208,9 +217,13 @@ class Enemy_entity(Entity):
             self.rectangle.top = new_position[1]
         else: # enemy is dead, don't move any more
             pass
+        return False
     def is_done(self, run_time):
         done = ( run_time - self.death_time >= 1.0 )
         return done
+    def is_dead(self, run_time):
+        self.is_alive = False
+        self.death_time = run_time
     def draw(self,target_surface):
         if self.is_alive:
             target_surface.blit( self.image, self.position )
@@ -234,3 +247,110 @@ class Projectile_entity(Entity):
                             (self.rectangle.centerx, self.rectangle.centery),
                             PROJECTILE_SIZE, 0 )
         
+class Boss_entity(Entity):
+    def __init__(self):
+        self.health = BOSS_HEALTH
+        self.move_left = False
+        self.move_right = False
+        self.move_up = True
+        self.move_down = False
+
+        self.is_alive = True
+        self.death_time = 0
+        self.smart = True
+        self.is_boss = True
+        self.load_data()
+
+        self.rectangle = self.current_animation.get_image().get_rect()
+        self.rectangle.centerx = SCREEN_WIDTH - BOSS_SPACE_BUFFER
+        self.rectangle.centery = SCREEN_HEIGHT / 2
+        self.position = self.rectangle.topleft
+    def load_data(self):
+        flipped = False
+        frames = 20
+        boss_sprite_sheet = Sprite_sheet( os.path.join( os.pardir, DATA, PLAYER_SPRITE_SHEET ) )
+        rects = [ (2,262,58,113),
+                  (62,262,57,112),
+                  (121,262,61,112) ]
+        images = boss_sprite_sheet.images_at( rects, -1, flipped )
+        images_zoomed = []
+        for image in images:
+            images_zoomed.append( pygame.transform.scale2x( image ) )
+        self.move_right_animation = Animated_sprite_sheet( images_zoomed, frames )
+        self.move_up_animation = self.move_right_animation
+        flipped = True
+        images_2 = boss_sprite_sheet.images_at( rects, -1, flipped )
+        images_zoomed_2 = []
+        for image in images_2:
+            images_zoomed_2.append( pygame.transform.scale2x( image ) )
+        self.move_left_animation = Animated_sprite_sheet( images_zoomed_2, frames )
+        self.move_down_animation = self.move_left_animation
+        self.current_animation = self.move_up_animation
+        del images, images_2, images_zoomed, images_zoomed_2, rects
+    def update(self, player_position): # return True if we should spawn a new wave
+        if self.is_alive:
+            if self.move_left:
+                if self.position[0] <= BOSS_SPACE_BUFFER:
+                    self.move_left = False
+                    self.move_down = True
+                    self.current_animation = self.move_down_animation
+                    return True
+                else:
+                    new_x = self.position[0] - BOSS_MOVE_SPEED
+                    self.position = ( new_x, self.position[1] )
+                    self.rectangle.topleft = self.position
+            elif self.move_right:
+                if self.position[0] >= (SCREEN_WIDTH - BOSS_SPACE_BUFFER - self.rectangle.width):
+                    self.move_right = False
+                    self.move_up = True
+                    self.current_animation = self.move_up_animation
+                    return True
+                else:
+                    new_x = self.position[0] + BOSS_MOVE_SPEED
+                    self.position = ( new_x, self.position[1] )
+                    self.rectangle.topleft = self.position
+            elif self.move_up:
+                if self.position[1] <= BOSS_SPACE_BUFFER:
+                    self.move_up = False
+                    self.move_left = True
+                    self.current_animation = self.move_left_animation
+                    return True
+                else:
+                    new_y = self.position[1] - BOSS_MOVE_SPEED
+                    self.position = ( self.position[0], new_y )
+                    self.rectangle.topleft = self.position
+            elif self.move_down:
+                if self.position[1] >= (SCREEN_HEIGHT - BOSS_SPACE_BUFFER - self.rectangle.height):
+                    self.move_down = False
+                    self.move_right = True
+                    self.current_animation = self.move_right_animation
+                    return True
+                else:
+                    new_y = self.position[1] + BOSS_MOVE_SPEED
+                    self.position = ( self.position[0], new_y )
+                    self.rectangle.topleft = self.position
+        else:
+            # dead, do not move anymore
+            pass
+        return False
+    def is_done(self, run_time):
+        done = ( run_time - self.death_time >= 1.0 )
+        return done
+    def is_dead(self, run_time):
+        self.is_alive = False
+        self.death_time = run_time
+        images = []
+        image = self.current_animation.get_image()
+        images.append( image )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        images.append( image )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        images.append( image )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        images.append( image )
+        self.death_animation = Animated_sprite_sheet( images, 15, False )
+        self.current_animation = self.death_animation
+        del images        
+    def draw(self,target_surface):
+        target_surface.blit( self.current_animation.get_image(), self.position )
+

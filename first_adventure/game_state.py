@@ -65,6 +65,7 @@ class Play_state( Game_state ):
         self.wave_3 = False
         self.wave_4 = False
         self.wave_4_count = 0
+        self.boss_started = False
 
         # hide mouse for gameplay
         pygame.mouse.set_visible( False )
@@ -134,8 +135,9 @@ class Play_state( Game_state ):
 
         # update enemies, check for collisions between player
         for enemy in self.enemies[:]:
-            enemy.update( self.player_entity.position[1] )
-            if enemy.rectangle.colliderect( self.player_entity.get_rectangle() ):
+            if enemy.update( self.player_entity.position[1] ):
+                self.enemies.extend( self.wave_manager.get_wave_random() )
+            if enemy.rectangle.colliderect( self.player_entity.get_hitbox() ):
                 if self.player_invulnerable == False: # only hurt player if not invulnerable
                     if self.player_entity.health > 0:
                         # the player has been hit!
@@ -158,14 +160,22 @@ class Play_state( Game_state ):
             for enemy in self.enemies[:]:
                 if projectile.rectangle.colliderect( enemy.rectangle ):
                     # insert code here to de-activate enemy, initiate death animation, update player score
-                    enemy.is_alive = False
-                    enemy.death_time = self.run_time
-                    if enemy.smart == True:
-                        self.player_score += 50
-                    elif enemy.smart == False:
-                        self.player_score += 10
-                    self.enemies.remove( enemy )
-                    self.dead_enemies.append( enemy )
+                    if enemy.is_boss:
+                        if enemy.health <= 0: # boss is dead
+                            enemy.is_dead( self.run_time )
+                            self.player_score += 500
+                            self.enemies.remove( enemy )
+                            self.dead_enemies.append( enemy )
+                        else:
+                            enemy.health -= 1
+                    else: # normal npc
+                        enemy.is_dead( self.run_time )
+                        if enemy.smart == True:
+                            self.player_score += 50
+                        elif enemy.smart == False:
+                            self.player_score += 10
+                        self.enemies.remove( enemy )
+                        self.dead_enemies.append( enemy )
                     projectile.is_active = False
             if projectile.is_active == False:
                 self.projectiles.remove( projectile )
@@ -256,9 +266,14 @@ class Play_state( Game_state ):
                     self.last_spawn_time = self.run_time
                     self.enemies.extend( self.wave_manager.get_wave_random() )
                 else:
-                    # last wave complete, check for win
-                    if self.enemies == []:
-                        self.terminate( GAME_WIN )
+                    if self.boss_started == False:
+                        boss_entity = Boss_entity()
+                        self.enemies.append( boss_entity )
+                        self.boss_started = True
+                    else:
+                        # last wave complete, check for win
+                        if self.enemies == []:
+                            self.terminate( GAME_WIN )
                         
     def draw(self):
         # draw to the main surface

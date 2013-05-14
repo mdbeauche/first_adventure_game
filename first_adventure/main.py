@@ -43,7 +43,7 @@ def main():
     # initialize music
     #pygame.mixer.init()
     #pygame.mixer.music.load( os.path.join( os.pardir, DATA, BG_MUSIC ) )
-    #pygame.mixer.music.play( 1, 0.0 )
+    #pygame.mixer.music.play( 0, 0.0 )
 
     # initialize first game state, place on stack of game states (done by init)
     # pass game_states so that this game state can add new game states to the stack
