@@ -43,6 +43,8 @@ class Play_state( Game_state ):
         Game_state.__init__(self, main_surface, game_states, start_time)
         # initialize player variables
         self.player_invulnerable = False
+        self.space_pressed = False
+        self.space_pressed_time = 0
         self.player_score = 0
         self.projectiles = []
 
@@ -54,9 +56,11 @@ class Play_state( Game_state ):
         if player_selection == KITTEN:
             self.smart_enemy_selection = POLAR_BEAR_SPRITE
             self.dumb_enemy_selection = KITTEN_SPRITE
+            self.projectile_color = COLOR_RED
         elif player_selection == POLAR_BEAR:
             self.smart_enemy_selection = KITTEN_SPRITE
             self.dumb_enemy_selection = POLAR_BEAR_SPRITE
+            self.projectile_color = COLOR_BLUE
         self.wave_manager = Wave_manager( self.smart_enemy_selection, self.dumb_enemy_selection )
         self.last_spawn_time = 0
         self.wave_start_time = self.start_time
@@ -105,9 +109,12 @@ class Play_state( Game_state ):
                     self.player_entity.move_left = False
                 elif key == K_SPACE:
                     self.player_entity.move_shoot = True
+                    self.space_pressed = True
+                    self.space_pressed_time = self.run_time
                     # generate a new projectile if there aren't too many on screen
                     if len(self.projectiles) < PROJECTILE_NUMBER:
-                        new_projectile = Projectile_entity(self.player_entity.get_projectile_position(), COLOR_RED)
+                        new_projectile = Projectile_entity(self.player_entity.get_projectile_position(), 
+                                                           self.projectile_color)
                         self.projectiles.append( new_projectile )
                 elif key == K_ESCAPE:
                     self.terminate()
@@ -123,12 +130,20 @@ class Play_state( Game_state ):
                     self.player_entity.move_right = False
                 elif key == K_SPACE:
                     self.player_entity.move_shoot = False
+                    self.space_pressed = False
     def update_logic(self):
         # update game logic based on one tick
         # update based on priority!
         # update player
         self.player_entity.update()
         
+        if self.space_pressed:
+            if self.run_time - self.space_pressed_time >= SHOOT_RELOAD_TIME:
+                if len(self.projectiles) < PROJECTILE_NUMBER:
+                    new_projectile = Projectile_entity(self.player_entity.get_projectile_position(), self.projectile_color)
+                    self.projectiles.append( new_projectile ) 
+                    self.space_pressed_time = self.run_time
+
         # check to reset invulnerability
         if self.player_invulnerable and ( self.run_time - self.invulnerable_start_time ) >= PLAYER_INVULNERABLE_TIME :
             self.player_invulnerable = False
@@ -430,11 +445,15 @@ class Character_select_state( Game_state ):
         flipped = True
         looped = False
         # idle animation loops once on open screen (Loop = False)
-        self.kitten_idle = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames, looped )
+        kitten_images = player_sprite_sheet.images_at( rects, -1, flipped )
+        kitten_images_2x = []
+        for image in kitten_images:
+            kitten_images_2x.append( pygame.transform.scale2x( image ) )
+        self.kitten_idle = Animated_sprite_sheet( kitten_images_2x, frames, looped )
         frames = 20
         looped = True
         # selected animation loops while selected (Loop = True)
-        self.kitten_selected = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames, looped )
+        self.kitten_selected = Animated_sprite_sheet( kitten_images_2x, frames, looped )
 
         # small bear jump (move up)
         frames = 10
@@ -444,10 +463,14 @@ class Character_select_state( Game_state ):
                   (96,2,82,80), 
                   (180,2,99,56), 
                   (281,2,90,84) ]
-        self.bear_idle = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames, False )
+        bear_images = player_sprite_sheet.images_at( rects, -1, flipped )
+        bear_images_2x = []
+        for image in bear_images:
+            bear_images_2x.append( pygame.transform.scale2x( image ) )
+        self.bear_idle = Animated_sprite_sheet( bear_images_2x, frames, False )
         frames = 15
         looped = True
-        self.bear_selected = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames, True )
+        self.bear_selected = Animated_sprite_sheet( bear_images_2x, frames, True )
         self.bear_y = ( SCREEN_HEIGHT * 4 ) / 7
         self.bear_x = ( SCREEN_WIDTH * 2 ) / 7
         self.kitten_x = ( SCREEN_WIDTH * 5 ) / 7
@@ -462,6 +485,8 @@ class Character_select_state( Game_state ):
                                         self.kitten_idle.rectangle.height )
         self.kitten_rect.centerx = self.kitten_x
         self.kitten_rect.centery = self.kitten_y
+
+        del rects, bear_images, bear_images_2x, kitten_images, kitten_images_2x
     def get_input(self):
         for event in pygame.event.get():
             if event.type == QUIT:
