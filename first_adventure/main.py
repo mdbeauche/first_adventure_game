@@ -30,7 +30,7 @@ def main():
     main_surface = pygame.display.set_mode( (SCREEN_WIDTH,SCREEN_HEIGHT), 0, 32 )
     pygame.display.toggle_fullscreen()
     pygame.display.set_caption( SCREEN_CAPTION )
-    pygame.display.set_icon( pygame.image.load( os.path.join( os.pardir, DATA, WINDOW_ICON ) ) ) # 32x32
+    pygame.display.set_icon( pygame.image.load( os.path.join( os.pardir, DATA, WINDOW_ICON ) ).convert_alpha() ) # 32x32
     main_surface.fill( COLOR_BLACK )
 
     # initialize stack of game states

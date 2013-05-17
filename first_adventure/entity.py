@@ -34,7 +34,7 @@ class Player_entity(Entity):
         player_sprite_sheet = Sprite_sheet( os.path.join( os.pardir, DATA, PLAYER_SPRITE_SHEET ) )
 
         if player_selection == KITTEN:
-            frames = 20
+            frames = 10
             # small kitten jump part (shoot)
             rects = [ (315,88,127,66) ]
             self.shoot_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
@@ -68,7 +68,7 @@ class Player_entity(Entity):
             self.idle_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             self.current_animation = self.idle_animation
         elif player_selection == POLAR_BEAR:
-            frames = 15
+            frames = 10
             # small bear jump part (shoot)
             rects = [ (180,2,99,56) ]
             # 99, 28 based on bear sprite
@@ -190,11 +190,11 @@ class Enemy_entity(Entity):
         images = []
         image = pygame.image.load( os.path.join( os.pardir, DATA, sprite ) ).convert_alpha() 
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
         self.death_animation = Animated_sprite_sheet( images, 15, False )
         del images
@@ -275,16 +275,16 @@ class Boss_entity(Entity):
         images = boss_sprite_sheet.images_at( rects, -1, flipped )
         images_zoomed = []
         for image in images:
-            images_zoomed.append( pygame.transform.scale2x( image ) )
+            images_zoomed.append( pygame.transform.scale2x( image ).convert_alpha() )
         self.move_right_animation = Animated_sprite_sheet( images_zoomed, frames )
-        self.move_up_animation = self.move_right_animation
         flipped = True
         images_2 = boss_sprite_sheet.images_at( rects, -1, flipped )
         images_zoomed_2 = []
         for image in images_2:
-            images_zoomed_2.append( pygame.transform.scale2x( image ) )
+            images_zoomed_2.append( pygame.transform.scale2x( image ).convert_alpha() )
         self.move_left_animation = Animated_sprite_sheet( images_zoomed_2, frames )
-        self.move_down_animation = self.move_left_animation
+        self.move_down_animation = self.move_right_animation
+        self.move_up_animation = self.move_left_animation
         self.current_animation = self.move_up_animation
         del images, images_2, images_zoomed, images_zoomed_2, rects
     def update(self, player_position): # return True if we should spawn a new wave
@@ -342,11 +342,11 @@ class Boss_entity(Entity):
         images = []
         image = self.current_animation.get_image()
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
-        image = pygame.transform.rotozoom( image, -90.0, 0.75 )
+        image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
         self.death_animation = Animated_sprite_sheet( images, 15, False )
         self.current_animation = self.death_animation

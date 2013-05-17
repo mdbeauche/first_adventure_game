@@ -441,14 +441,14 @@ class Character_select_state( Game_state ):
                   (315,88,127,66), 
                   (2,173,107,77), 
                   (111,173,91,87) ]
-        frames = 15
+        frames = 10
         flipped = True
         looped = False
         # idle animation loops once on open screen (Loop = False)
         kitten_images = player_sprite_sheet.images_at( rects, -1, flipped )
         kitten_images_2x = []
         for image in kitten_images:
-            kitten_images_2x.append( pygame.transform.scale2x( image ) )
+            kitten_images_2x.append( pygame.transform.scale2x( image ).convert_alpha() )
         self.kitten_idle = Animated_sprite_sheet( kitten_images_2x, frames, looped )
         frames = 20
         looped = True
@@ -466,9 +466,9 @@ class Character_select_state( Game_state ):
         bear_images = player_sprite_sheet.images_at( rects, -1, flipped )
         bear_images_2x = []
         for image in bear_images:
-            bear_images_2x.append( pygame.transform.scale2x( image ) )
+            bear_images_2x.append( pygame.transform.scale2x( image ).convert_alpha() )
         self.bear_idle = Animated_sprite_sheet( bear_images_2x, frames, False )
-        frames = 15
+        frames = 10
         looped = True
         self.bear_selected = Animated_sprite_sheet( bear_images_2x, frames, True )
         self.bear_y = ( SCREEN_HEIGHT * 4 ) / 7

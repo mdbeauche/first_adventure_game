@@ -78,9 +78,9 @@ class Wave_manager( object ):
                 enemy = Enemy_entity( position, self.smart_enemy_selection, True )
             wave.append( enemy )
         return wave
-    def get_wave_random(self): # 3-6 random enemies
+    def get_wave_random(self): # 4-6 random enemies
         wave = []
-        max_num = random.randint( 3, 6 )
+        max_num = random.randint( 4, 6 )
         for i in range(max_num):
             position = ( SCREEN_WIDTH, 0 + ( SCREEN_HEIGHT * i )/ max_num)
             random_int = random.randint( 0, 1 )
