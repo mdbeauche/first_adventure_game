@@ -62,7 +62,7 @@ class BuildExe:
         self.copyright = "Copyright (c) 2013 Michael Beauchemin."
 
         #Description
-        self.project_description = "Polar Bear and Kitten's First Adventure"
+        self.project_description = "Bears and Cats... in Space!"
 
         #Icon file (None will use pygame default icon)
         self.icon_file = None
