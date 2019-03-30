@@ -33,31 +33,31 @@ class Player_entity(Entity):
         flipped = False
         player_sprite_sheet = Sprite_sheet( os.path.join( os.pardir, DATA, PLAYER_SPRITE_SHEET ) )
 
-        if player_selection == KITTEN:
+        if player_selection == CAT:
             frames = 10
-            # small kitten jump part (shoot)
+            # small cat jump part (shoot)
             rects = [ (315,88,127,66) ]
             self.shoot_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
-            # 127, 33 based on kitten sprite
+            # 127, 33 based on cat sprite
             self.projectile_position = ( 127, 33 )
-            # small kitten jump (move up)
-            rects = [ (202,88,111,78), 
-                      (315,88,127,66), 
-                      (2,173,107,77), 
+            # small cat jump (move up)
+            rects = [ (202,88,111,78),
+                      (315,88,127,66),
+                      (2,173,107,77),
                       (111,173,91,87) ]
             self.move_up_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
-            # small kitten jump (move down)
-            rects = [ (202,88,111,78), 
-                      (315,88,127,66), 
-                      (2,173,107,77), 
+            # small cat jump (move down)
+            rects = [ (202,88,111,78),
+                      (315,88,127,66),
+                      (2,173,107,77),
                       (111,173,91,87) ]
             self.move_down_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
-            # small kitten run (right)
+            # small cat run (right)
             rects = [ (204,173,80,82),
                       (286,173,112,77),
                       (400,173,84,84) ]
             self.move_right_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
-            # small kitten run (left)
+            # small cat run (left)
             flipped = True
             rects = [ (204,173,80,82),
                       (286,173,112,77),
@@ -67,7 +67,7 @@ class Player_entity(Entity):
             rects = [ (400,173,84,84) ]
             self.idle_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             self.current_animation = self.idle_animation
-        elif player_selection == POLAR_BEAR:
+        elif player_selection == BEAR:
             frames = 10
             # small bear jump part (shoot)
             rects = [ (180,2,99,56) ]
@@ -75,15 +75,15 @@ class Player_entity(Entity):
             self.projectile_position = ( 99, 28 )
             self.shoot_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             # small bear jump (move up)
-            rects = [ (2,2,92,76), 
-                      (96,2,82,80), 
-                      (180,2,99,56), 
+            rects = [ (2,2,92,76),
+                      (96,2,82,80),
+                      (180,2,99,56),
                       (281,2,90,84) ]
             self.move_up_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             # small bear jump (move down)
-            rects = [ (2,2,92,76), 
-                      (96,2,82,80), 
-                      (180,2,99,56), 
+            rects = [ (2,2,92,76),
+                      (96,2,82,80),
+                      (180,2,99,56),
                       (281,2,90,84) ]
             self.move_down_animation = Animated_sprite_sheet( player_sprite_sheet.images_at( rects, -1, flipped ), frames )
             # small bear run (right)
@@ -104,7 +104,7 @@ class Player_entity(Entity):
             self.current_animation = self.idle_animation
         del player_sprite_sheet
         del rects
-            
+
     def update(self):
         # move the player to a new position
         if self.move_left:
@@ -148,7 +148,7 @@ class Player_entity(Entity):
             self.current_animation = self.idle_animation
     def draw(self,target_surface):
         # draw player
-        target_surface.blit( self.current_animation.get_image(), self.position ) 
+        target_surface.blit( self.current_animation.get_image(), self.position )
         # draw player health
         # draw red health bars
         for i in range( self.health ):
@@ -159,13 +159,13 @@ class Player_entity(Entity):
     def get_projectile_position(self):
         return ( self.position[0] + self.projectile_position[0], self.position[1] + self.projectile_position[1] )
     def get_rectangle(self):
-        return ( self.position[0], self.position[1], 
+        return ( self.position[0], self.position[1],
                  self.current_animation.rectangle.width, self.current_animation.rectangle.height )
     def get_hitbox(self):
         rect = self.get_rectangle()
-        rect = ( rect[0] - PLAYER_HITBOX_BUFFER, 
-                 rect[1] - PLAYER_HITBOX_BUFFER, 
-                 rect[2] - PLAYER_HITBOX_BUFFER, 
+        rect = ( rect[0] - PLAYER_HITBOX_BUFFER,
+                 rect[1] - PLAYER_HITBOX_BUFFER,
+                 rect[2] - PLAYER_HITBOX_BUFFER,
                  rect[3] - PLAYER_HITBOX_BUFFER )
         return rect
 
@@ -188,7 +188,7 @@ class Enemy_entity(Entity):
         self.load_data( sprite )
     def load_data(self, sprite):
         images = []
-        image = pygame.image.load( os.path.join( os.pardir, DATA, sprite ) ).convert_alpha() 
+        image = pygame.image.load( os.path.join( os.pardir, DATA, sprite ) ).convert_alpha()
         images.append( image )
         image = pygame.transform.rotozoom( image, -90.0, 0.75 ).convert_alpha()
         images.append( image )
@@ -243,10 +243,10 @@ class Projectile_entity(Entity):
         else:
             return False
     def draw(self,target_surface):
-        pygame.draw.circle( target_surface, self.color, 
+        pygame.draw.circle( target_surface, self.color,
                             (self.rectangle.centerx, self.rectangle.centery),
                             PROJECTILE_SIZE, 0 )
-        
+
 class Boss_entity(Entity):
     def __init__(self):
         self.health = BOSS_HEALTH
@@ -350,7 +350,6 @@ class Boss_entity(Entity):
         images.append( image )
         self.death_animation = Animated_sprite_sheet( images, 15, False )
         self.current_animation = self.death_animation
-        del images        
+        del images
     def draw(self,target_surface):
         target_surface.blit( self.current_animation.get_image(), self.position )
-

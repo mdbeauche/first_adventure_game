@@ -1,7 +1,7 @@
 # SYSTEM
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 600
-SCREEN_CAPTION = 'Polar Bear and Kitten\'s First Adventure'
+SCREEN_CAPTION = 'Bears and Cats... in Space!'
 GAME_SPEED = 60 # FPS
 
 # TEXT
@@ -15,11 +15,14 @@ GAME_INSTRUCTIONS = 'Instructions: Use arrow keys to move, spacebar to shoot, es
 
 # DATA
 DATA = 'data'
-PLAYER_SPRITE_SHEET = 'SmBearTlBearKittenSheet.png'
-POLAR_BEAR_SPRITE = 'polarBearImg.png'
-KITTEN_SPRITE = 'kittenImg.png'
-WINDOW_ICON = 'kittenImg.png'
-BG_MUSIC = 'song.mp3'
+PLAYER_SPRITE_SHEET = 'SmBearTlBearCatSheet.png'
+BEAR_SPRITE = 'bearImg.png'
+CAT_SPRITE = 'catImg.png'
+WINDOW_ICON = 'catImg.png'
+BG_MUSIC = 'song.ogg'
+PROJECTILE_SOUND_FILE = 'fire.wav'
+NPC_HIT_SOUND_FILE = 'death.wav'
+PLAYER_HIT_SOUND_FILE = 'killed.wav'
 HIGH_SCORE = 'high_score.txt'
 
 # COLORS           R    G    B
@@ -41,18 +44,18 @@ PLAYER_MOVE_SPEED = 10
 PLAYER_HEALTH = 5
 PLAYER_INVULNERABLE_TIME = 0.85 # in seconds
 INVULNERABLE_ANIMATION_TIME = 0.15 # in seconds
-KITTEN = 'kitten'
-POLAR_BEAR = 'polar bear'
+CAT = 'cat'
+BEAR = 'bear'
 PLAYER_HITBOX_BUFFER = 20
+SHOOT_RELOAD_TIME = 0.20
+PROJECTILE_SPEED = 14
+PROJECTILE_SIZE = 8
+PROJECTILE_NUMBER = 7
 
 # NPC
 DUMB_NPC_MOVE_SPEED = 8
 SMART_NPC_MOVE_SPEED_X = 8
 SMART_NPC_MOVE_SPEED_Y = 3
-PROJECTILE_SPEED = 10
-PROJECTILE_SIZE = 8
-PROJECTILE_NUMBER = 7
-SHOOT_RELOAD_TIME = 0.20
 BOSS_HEALTH = 60
 BOSS_MOVE_SPEED = 7
 BOSS_SPACE_BUFFER = 50

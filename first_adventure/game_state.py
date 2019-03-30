@@ -13,7 +13,7 @@ class Game_state( object ):
         self.state_surface = main_surface.convert_alpha()
         self.is_active = True
         self.game_states = game_states
-        self.game_states.append( self )
+        self.game_states.append(self)
         self.run_time = 0
         self.start_time = start_time
         pygame.mouse.set_visible( True )
@@ -51,15 +51,15 @@ class Play_state( Game_state ):
         # initialize enemies
         self.enemies = []
         self.dead_enemies = []
-        
+
         # initialize wave variables
-        if player_selection == KITTEN:
-            self.smart_enemy_selection = POLAR_BEAR_SPRITE
-            self.dumb_enemy_selection = KITTEN_SPRITE
+        if player_selection == CAT:
+            self.smart_enemy_selection = BEAR_SPRITE
+            self.dumb_enemy_selection = CAT_SPRITE
             self.projectile_color = COLOR_RED
-        elif player_selection == POLAR_BEAR:
-            self.smart_enemy_selection = KITTEN_SPRITE
-            self.dumb_enemy_selection = POLAR_BEAR_SPRITE
+        elif player_selection == BEAR:
+            self.smart_enemy_selection = CAT_SPRITE
+            self.dumb_enemy_selection = BEAR_SPRITE
             self.projectile_color = COLOR_BLUE
         self.wave_manager = Wave_manager( self.smart_enemy_selection, self.dumb_enemy_selection )
         self.last_spawn_time = 0
@@ -87,6 +87,10 @@ class Play_state( Game_state ):
         self.text_score_rect = self.text_score.get_rect()
         self.text_score_rect.bottomleft = ( 15, SCREEN_HEIGHT - 15 )
 
+        self.player_hit_sound = pygame.mixer.Sound( os.path.join( os.pardir, DATA, PLAYER_HIT_SOUND_FILE ) )
+        self.npc_hit_sound = pygame.mixer.Sound( os.path.join( os.pardir, DATA, NPC_HIT_SOUND_FILE ) )
+        self.projectile_sound = pygame.mixer.Sound( os.path.join( os.pardir, DATA, PROJECTILE_SOUND_FILE ) )
+
     def get_input(self):
         # get user input
         for event in pygame.event.get():
@@ -113,9 +117,10 @@ class Play_state( Game_state ):
                     self.space_pressed_time = self.run_time
                     # generate a new projectile if there aren't too many on screen
                     if len(self.projectiles) < PROJECTILE_NUMBER:
-                        new_projectile = Projectile_entity(self.player_entity.get_projectile_position(), 
+                        new_projectile = Projectile_entity(self.player_entity.get_projectile_position(),
                                                            self.projectile_color)
                         self.projectiles.append( new_projectile )
+                        self.projectile_sound.play()
                 elif key == K_ESCAPE:
                     self.terminate()
             elif event.type == KEYUP:
@@ -136,12 +141,13 @@ class Play_state( Game_state ):
         # update based on priority!
         # update player
         self.player_entity.update()
-        
+
         if self.space_pressed:
             if self.run_time - self.space_pressed_time >= SHOOT_RELOAD_TIME:
                 if len(self.projectiles) < PROJECTILE_NUMBER:
                     new_projectile = Projectile_entity(self.player_entity.get_projectile_position(), self.projectile_color)
-                    self.projectiles.append( new_projectile ) 
+                    self.projectiles.append( new_projectile )
+                    self.projectile_sound.play()
                     self.space_pressed_time = self.run_time
 
         # check to reset invulnerability
@@ -160,6 +166,7 @@ class Play_state( Game_state ):
                         self.player_score -= 200
                         self.player_invulnerable = True
                         self.invulnerable_start_time = self.run_time
+                        self.player_hit_sound.play()
                         if self.player_entity.health == 0:
                             # the player is dead!
                             self.terminate( GAME_LOSE )
@@ -175,6 +182,7 @@ class Play_state( Game_state ):
             for enemy in self.enemies[:]:
                 if projectile.rectangle.colliderect( enemy.rectangle ):
                     # insert code here to de-activate enemy, initiate death animation, update player score
+                    self.npc_hit_sound.play()
                     if enemy.is_boss:
                         if enemy.health <= 0: # boss is dead
                             enemy.is_dead( self.run_time )
@@ -289,7 +297,7 @@ class Play_state( Game_state ):
                         # last wave complete, check for win
                         if self.enemies == []:
                             self.terminate( GAME_WIN )
-                        
+
     def draw(self):
         # draw to the main surface
         # draw in priority of importance on screen!
@@ -328,7 +336,7 @@ class Play_state( Game_state ):
         self.is_active = False
         pygame.mouse.set_visible( True )
         if condition == GAME_LOSE or condition == GAME_WIN:
-            game_over_state = Game_over_state( self.main_surface, self.game_states, self.run_time, 
+            game_over_state = Game_over_state( self.main_surface, self.game_states, self.run_time,
                                                self.player_score, condition )
         else:
             # neither win nor lose, just pressed 'esc'
@@ -375,7 +383,7 @@ class Menu_state( Game_state ):
             elif event.type == MOUSEBUTTONDOWN:
                 if self.text_start_rect.collidepoint(event.pos): # if user clicked on START
                     # self.is_active = False # comment out to return to main menu later
-                    character_select_state = Character_select_state( self.main_surface, 
+                    character_select_state = Character_select_state( self.main_surface,
                                                                      self.game_states,
                                                                      self.run_time )
                     self.mouse_over_start = False
@@ -436,32 +444,32 @@ class Character_select_state( Game_state ):
         self.text_start_rect.centery = (SCREEN_HEIGHT * 4) / 5
         # load characters to select
         player_sprite_sheet = Sprite_sheet( os.path.join( os.pardir, DATA, PLAYER_SPRITE_SHEET ) )
-        # small kitten jump (move up)
-        rects = [ (202,88,111,78), 
-                  (315,88,127,66), 
-                  (2,173,107,77), 
+        # small cat jump (move up)
+        rects = [ (202,88,111,78),
+                  (315,88,127,66),
+                  (2,173,107,77),
                   (111,173,91,87) ]
         frames = 10
         flipped = True
         looped = False
         # idle animation loops once on open screen (Loop = False)
-        kitten_images = player_sprite_sheet.images_at( rects, -1, flipped )
-        kitten_images_2x = []
-        for image in kitten_images:
-            kitten_images_2x.append( pygame.transform.scale2x( image ).convert_alpha() )
-        self.kitten_idle = Animated_sprite_sheet( kitten_images_2x, frames, looped )
+        cat_images = player_sprite_sheet.images_at( rects, -1, flipped )
+        cat_images_2x = []
+        for image in cat_images:
+            cat_images_2x.append( pygame.transform.scale2x( image ).convert_alpha() )
+        self.cat_idle = Animated_sprite_sheet( cat_images_2x, frames, looped )
         frames = 20
         looped = True
         # selected animation loops while selected (Loop = True)
-        self.kitten_selected = Animated_sprite_sheet( kitten_images_2x, frames, looped )
+        self.cat_selected = Animated_sprite_sheet( cat_images_2x, frames, looped )
 
         # small bear jump (move up)
         frames = 10
         flipped = False
         looped = False
-        rects = [ (2,2,92,76), 
-                  (96,2,82,80), 
-                  (180,2,99,56), 
+        rects = [ (2,2,92,76),
+                  (96,2,82,80),
+                  (180,2,99,56),
                   (281,2,90,84) ]
         bear_images = player_sprite_sheet.images_at( rects, -1, flipped )
         bear_images_2x = []
@@ -473,20 +481,20 @@ class Character_select_state( Game_state ):
         self.bear_selected = Animated_sprite_sheet( bear_images_2x, frames, True )
         self.bear_y = ( SCREEN_HEIGHT * 4 ) / 7
         self.bear_x = ( SCREEN_WIDTH * 2 ) / 7
-        self.kitten_x = ( SCREEN_WIDTH * 5 ) / 7
-        self.kitten_y = ( SCREEN_HEIGHT * 4 ) / 7
-        self.bear_rect = pygame.Rect( self.bear_x, self.bear_y, 
-                                      self.bear_idle.rectangle.width, 
+        self.cat_x = ( SCREEN_WIDTH * 5 ) / 7
+        self.cat_y = ( SCREEN_HEIGHT * 4 ) / 7
+        self.bear_rect = pygame.Rect( self.bear_x, self.bear_y,
+                                      self.bear_idle.rectangle.width,
                                       self.bear_idle.rectangle.height )
         self.bear_rect.centerx = self.bear_x
         self.bear_rect.centery = self.bear_y
-        self.kitten_rect = pygame.Rect( self.kitten_x, self.kitten_y, 
-                                        self.kitten_idle.rectangle.width, 
-                                        self.kitten_idle.rectangle.height )
-        self.kitten_rect.centerx = self.kitten_x
-        self.kitten_rect.centery = self.kitten_y
+        self.cat_rect = pygame.Rect( self.cat_x, self.cat_y,
+                                        self.cat_idle.rectangle.width,
+                                        self.cat_idle.rectangle.height )
+        self.cat_rect.centerx = self.cat_x
+        self.cat_rect.centery = self.cat_y
 
-        del rects, bear_images, bear_images_2x, kitten_images, kitten_images_2x
+        del rects, bear_images, bear_images_2x, cat_images, cat_images_2x
     def get_input(self):
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -494,15 +502,15 @@ class Character_select_state( Game_state ):
                 sys.exit()
             elif event.type == MOUSEBUTTONDOWN:
                 if self.text_start_rect.collidepoint(event.pos): # if user clicked on START
-                    if self.character_selected == POLAR_BEAR or self.character_selected == KITTEN:
+                    if self.character_selected == BEAR or self.character_selected == CAT:
                         self.is_active = False
-                        game_play_state = Play_state( self.main_surface, self.game_states, 
+                        game_play_state = Play_state( self.main_surface, self.game_states,
                                                       self.run_time, self.character_selected )
                         self.mouse_over_start = False
                 if self.bear_rect.collidepoint(event.pos): # user clicked on bear
-                    self.character_selected = POLAR_BEAR
-                if self.kitten_rect.collidepoint(event.pos): # user clicked on kitten
-                    self.character_selected = KITTEN
+                    self.character_selected = BEAR
+                if self.cat_rect.collidepoint(event.pos): # user clicked on cat
+                    self.character_selected = CAT
             elif event.type == MOUSEMOTION:
                 if self.text_start_rect.collidepoint(event.pos):
                     self.mouse_over_start = True
@@ -522,21 +530,21 @@ class Character_select_state( Game_state ):
         # draw title
         self.state_surface.blit( self.text_title, self.text_title_rect )
         # draw play if a character has been selected
-        if self.character_selected == POLAR_BEAR or self.character_selected == KITTEN:
+        if self.character_selected == BEAR or self.character_selected == CAT:
             if self.mouse_over_start == True:
                 self.state_surface.blit( self.text_start_green, self.text_start_rect )
             else:
                 self.state_surface.blit( self.text_start, self.text_start_rect )
         # draw bear
-        if self.character_selected == POLAR_BEAR:
+        if self.character_selected == BEAR:
             self.state_surface.blit( self.bear_selected.get_image(), self.bear_rect.topleft )
         else:
             self.state_surface.blit( self.bear_idle.get_image(), self.bear_rect.topleft )
-        # draw kitten
-        if self.character_selected == KITTEN:
-            self.state_surface.blit( self.kitten_selected.get_image(), self.kitten_rect.topleft )
+        # draw cat
+        if self.character_selected == CAT:
+            self.state_surface.blit( self.cat_selected.get_image(), self.cat_rect.topleft )
         else:
-            self.state_surface.blit( self.kitten_idle.get_image(), self.kitten_rect.topleft )
+            self.state_surface.blit( self.cat_idle.get_image(), self.cat_rect.topleft )
         self.main_surface.blit( self.state_surface, (0,0) )
         pygame.display.flip()
     def free_data(self):
@@ -591,7 +599,7 @@ class Game_over_state( Game_state ):
             high_score.write( str( self.player_score ) )
             high_score.close()
 
-        self.text_score_old = self.font_info.render( 'HIGH SCORE: ' + old_high_score, 
+        self.text_score_old = self.font_info.render( 'HIGH SCORE: ' + old_high_score,
                                                      ANTI_ALIASING, COLOR_WHITE, COLOR_BLACK )
         self.text_score_old_rect = self.text_score_old.get_rect()
         self.text_score_old_rect.centerx = SCREEN_WIDTH / 2
